@@ -1,10 +1,24 @@
-import './App.css';
-
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { useContext } from "react";
+import { AuthContext } from "./context/AuthContext";
+import Login from "./pages/Login";
+import { Chat } from "./pages/Chat";
+import { Register } from "./pages/Register";
 function App() {
+  const { user } = useContext(AuthContext);
+
   return (
-    <div>
-      Hello world
+    <div className="App">
+      <Router>
+        <Routes>
+          <Route path="/register" element={<Register></Register>}></Route>
+          <Route path="/login" element={<Login></Login>}></Route>
+          <Route path="/chat" element={<Chat />}></Route>
+          <Route path="*" element={user ? <Chat></Chat> : <Login></Login>}></Route>
+        </Routes>
+      </Router>
     </div>
+
   );
 }
 
