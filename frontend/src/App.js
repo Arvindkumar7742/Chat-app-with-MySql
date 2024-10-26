@@ -11,9 +11,9 @@ function App() {
     <div className="App">
       <Router>
         <Routes>
-          <Route path="/register" element={<Register></Register>}></Route>
+          <Route path="/register" element={user ? <Chat></Chat> : <Register></Register>}></Route>
           <Route path="/login" element={<Login></Login>}></Route>
-          <Route path="/chat" element={<Chat />}></Route>
+          <Route path="/chat" element={user ? <Chat></Chat> : <Login></Login>}></Route>
           <Route path="*" element={user ? <Chat></Chat> : <Login></Login>}></Route>
         </Routes>
       </Router>
