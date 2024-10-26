@@ -1,0 +1,150 @@
+const router = require("express").Router();
+const { db } = require('../config/dbConnect');
+
+router.post("/createuser", (req, res) => {
+    const { userEmail, userName, password } = req.body;
+    if (!userEmail || !userName || !password) {
+        return res.status(400).json({
+            success: false,
+            message: "Provide all the data filed",
+        })
+    }
+
+    const isAlreadyPresent = "SELECT * FROM `users` WHERE `userName` = ?";
+
+    db.query(isAlreadyPresent, [userName], (err, data) => {
+        if (err) {
+            console.error("Error in query", err);
+            return res.status(500).json({ success: false, message: "Database error" });
+        }
+
+        if (data.length > 0) {
+            // User already exists
+            return res.status(400).json({ success: false, message: "User already exists" });
+        } else {
+            // User does not exist, proceed with insertion
+            const insertUser = "INSERT INTO `users` (`userEmail`, `userName`, `password`) VALUES (?, ?, ?)";
+            db.query(insertUser, [userEmail, userName, password], (err, newUserData) => {
+                if (err) {
+                    console.error("Error inserting user", err);
+                    return res.status(500).json({ message: "Failed to create user" });
+                }
+                // Now, fetch the newly created user data using LAST_INSERT_ID()
+                const getUser = "SELECT * FROM `users` WHERE `id` = LAST_INSERT_ID()";
+
+                db.query(getUser, (err, newUserData) => {
+                    if (err) {
+                        console.error("Error fetching new user", err);
+                        return res.status(500).json({ success: false, message: "Error fetching created user" });
+                    }
+
+                    console.log("User created successfully:", newUserData);
+                    return res.status(201).json({ success: true, message: "User created successfully", user: newUserData[0] });
+                });
+            });
+        }
+    });
+});
+
+router.post("/sendMessage", (req, res) => {
+    const { senderUserName, receiverUserName, messageText } = req.body;
+
+    if (!senderUserName) {
+        return res.status(400).json({
+            success: false,
+            message: "Provide senderName",
+        })
+    }
+
+    if (!receiverUserName) {
+        return res.status(400).json({
+            success: false,
+            message: "Provide receiverUserName",
+        })
+    }
+
+    const isSenderPresent = "SELECT * FROM `users` WHERE `userName` = ?";
+    db.query(isSenderPresent, [senderUserName], (err, data) => {
+        if (err) {
+            console.error("Error in query", err);
+            return res.status(500).json({ success: false, message: "Database error while finding sender" });
+        }
+
+        if (data.length == 0) {
+            return res.status(400).json({ success: false, message: "Sender Does not exists" });
+        }
+        else {
+            const isReceiverPresent = "SELECT * FROM `users` WHERE `userName` = ?";
+            db.query(isReceiverPresent, [receiverUserName], (err, data) => {
+                if (err) {
+                    console.error("Error in query", err);
+                    return res.status(500).json({ success: false, message: "Database error While finding Receiver" });
+                }
+
+                if (data.length == 0) {
+                    return res.status(400).json({ success: false, message: "Receiver Does not exists" });
+                }
+                else {
+                    const insertMessage = "INSERT INTO `messages`(`message_text`, `sender_user_name`, `receiver_user_name`) VALUES (?, ?, ?)";
+
+                    db.query(insertMessage, [messageText, senderUserName, receiverUserName], (err, data) => {
+                        if (err) {
+                            console.error("Error in query", err);
+                            return res.status(500).json({ success: false, message: "Database error While inserting message" });
+                        }
+
+                        // Now, fetch the newly created user message using LAST_INSERT_ID()
+                        const getMessage = "SELECT * FROM `messages` WHERE `id` = LAST_INSERT_ID()";
+
+                        db.query(getMessage, (err, newMessageData) => {
+                            if (err) {
+                                console.error("Error fetching new user", err);
+                                return res.status(500).json({ success: false, message: "Error fetching created message" });
+                            }
+
+                            return res.status(201).json({ success: true, message: "User created successfully", message: newMessageData[0] });
+                        });
+                    });
+                }
+            });
+        }
+    });
+});
+
+router.post("/retrieveMessages", (req, res) => {
+    const { senderUserName, receiverUserName } = req.body;
+
+    if (!senderUserName) {
+        return res.status(400).json({
+            success: false,
+            message: "Provide senderName",
+        })
+    }
+
+    if (!receiverUserName) {
+        return res.status(400).json({
+            success: false,
+            message: "Provide receiverUserName",
+        })
+    }
+
+    const sql = "SELECT `id`, `message_text`, `sender_user_name`, `receiver_user_name`, `time` FROM `messages` WHERE `sender_user_name` = ? AND `receiver_user_name` = ? ORDER BY `time` ASC;"
+    db.query(sql, [senderUserName, receiverUserName], (err, data) => {
+        if (err) {
+            console.log("error while retrieving the data", err);
+            return res.status(500).json({
+                success: false,
+                message: "Error in retrieving the data"
+            })
+        }
+        else {
+            return res.status(200).json({
+                success: true,
+                message: "data fetched successfully",
+                data: data
+            })
+        }
+    })
+})
+
+module.exports = router;

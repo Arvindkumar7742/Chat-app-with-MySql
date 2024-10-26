@@ -2,10 +2,10 @@ const express = require('express');
 const cors = require('cors');
 const { db } = require("./config/dbConnect")
 const http=require("http");
-const app = express();
 const {Server}=require("socket.io");
 require('dotenv').config();
 
+const app = express();
 //middlewares
 app.use(express.json());
 app.use(cors());
@@ -14,6 +14,10 @@ app.use(cors());
 app.get("/", (req, res) => {
     return res.json("You are on backend");
 })
+
+//user Routes
+const userRoutes=require("./Routes/userRoutes");
+app.use("/api/user",userRoutes);
 
 //dummy route to fetch data
 app.get('/students', (req, res) => {
