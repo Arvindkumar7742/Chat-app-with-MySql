@@ -10,9 +10,9 @@ router.post("/createuser", (req, res) => {
         })
     }
 
-    const isAlreadyPresent = "SELECT * FROM `users` WHERE `userName` = ?";
+    const isUserNamePresent = "SELECT * FROM `users` WHERE `userName` = ?";
 
-    db.query(isAlreadyPresent, [userName], (err, data) => {
+    db.query(isUserNamePresent, [userName], (err, data) => {
         if (err) {
             console.error("Error in query", err);
             return res.status(500).json({ success: false, message: "Database error" });
@@ -20,31 +20,75 @@ router.post("/createuser", (req, res) => {
 
         if (data.length > 0) {
             // User already exists
-            return res.status(400).json({ success: false, message: "User already exists" });
+            return res.status(400).json({ success: false, message: "User Name already exists" });
         } else {
-            // User does not exist, proceed with insertion
-            const insertUser = "INSERT INTO `users` (`userEmail`, `userName`, `password`) VALUES (?, ?, ?)";
-            db.query(insertUser, [userEmail, userName, password], (err, newUserData) => {
+            const isUserEmailPresent = "SELECT * FROM `users` WHERE `userEmail` = ?";
+
+            db.query(isUserEmailPresent, [userEmail], (err, data) => {
                 if (err) {
-                    console.error("Error inserting user", err);
-                    return res.status(500).json({ message: "Failed to create user" });
+                    console.error("Error in query", err);
+                    return res.status(500).json({ success: false, message: "Database error" });
                 }
-                // Now, fetch the newly created user data using LAST_INSERT_ID()
-                const getUser = "SELECT * FROM `users` WHERE `id` = LAST_INSERT_ID()";
+                else if (data.length > 0) {
+                    // User already exists
+                    return res.status(400).json({ success: false, message: "User Email already exists" });
+                } else {
+                    // User does not exist, proceed with insertion
+                    const insertUser = "INSERT INTO `users` (`userEmail`, `userName`, `password`) VALUES (?, ?, ?)";
+                    db.query(insertUser, [userEmail, userName, password], (err, newUserData) => {
+                        if (err) {
+                            console.error("Error inserting user", err);
+                            return res.status(500).json({ message: "Failed to create user" });
+                        }
+                        // Now, fetch the newly created user data using LAST_INSERT_ID()
+                        const getUser = "SELECT * FROM `users` WHERE `id` = LAST_INSERT_ID()";
 
-                db.query(getUser, (err, newUserData) => {
-                    if (err) {
-                        console.error("Error fetching new user", err);
-                        return res.status(500).json({ success: false, message: "Error fetching created user" });
-                    }
+                        db.query(getUser, (err, newUserData) => {
+                            if (err) {
+                                console.error("Error fetching new user", err);
+                                return res.status(500).json({ success: false, message: "Error fetching created user" });
+                            }
 
-                    console.log("User created successfully:", newUserData);
-                    return res.status(201).json({ success: true, message: "User created successfully", user: newUserData[0] });
-                });
-            });
+                            console.log("User created successfully:", newUserData);
+                            return res.status(201).json({ success: true, message: "User created successfully", user: newUserData[0] });
+                        });
+                    });
+                }
+            })
         }
     });
 });
+
+router.post("/login", (req, res) => {
+    const { userEmail, password } = req.body;
+    if (!userEmail || !password) {
+        return res.status(400).json({
+            success: false,
+            message: "Provide all the data filed",
+        })
+    }
+
+    const isUserPresent = "SELECT * FROM `users` WHERE `userEmail` = ?";
+
+    db.query(isUserPresent, [userEmail], (err, data) => {
+        if (err) {
+            console.error("Error in query", err);
+            return res.status(500).json({ success: false, message: "Database error" });
+        }
+
+        if (data.length == 0) {
+            // User already exists
+            return res.status(400).json({ success: false, message: "User Not exist" });
+        }
+        else if(data[0].password != password){
+            return res.status(400).json({ success: false, message: "password does Not exist" });
+        }
+        else {
+            return res.status(400).json({ success: true, data: data[0] });
+        }
+    });
+});
+
 
 router.post("/sendMessage", (req, res) => {
     const { senderUserName, receiverUserName, messageText } = req.body;
