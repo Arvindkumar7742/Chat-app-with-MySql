@@ -1,8 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const { db } = require("./config/dbConnect")
-const http=require("http");
-const {Server}=require("socket.io");
+const http = require("http");
+const { Server } = require("socket.io");
 require('dotenv').config();
 
 const app = express();
@@ -16,8 +16,8 @@ app.get("/", (req, res) => {
 })
 
 //user Routes
-const userRoutes=require("./Routes/userRoutes");
-app.use("/api/user",userRoutes);
+const userRoutes = require("./Routes/userRoutes");
+app.use("/api/user", userRoutes);
 
 //dummy route to fetch data
 app.get('/students', (req, res) => {
@@ -32,29 +32,24 @@ app.get('/students', (req, res) => {
 })
 
 //To add the socket connections
-const server=http.createServer(app);
+const server = http.createServer(app);
 app.listen(process.env.PORT, () => {
     console.log(`app is listing on port no ${process.env.PORT}`);
 })
 
-const io=new Server(server,{
-    cors:{
-      origin:process.env.ORIGIN_URL,
-      methods:["GET","POST"]
+const io = new Server(server, {
+    cors: {
+        origin: process.env.ORIGIN_URL,
+        methods: ["GET", "POST"]
     }
 });
 
 
-io.on("connection",(socket)=>{
-
-      socket.on("join-room",(roomid)=>{
-           socket.join(roomid);
-      })
-
-      socket.on("send-msg",(message,currentRoomid)=>{
-          socket.to(currentRoomid).emit("receive-msg",message);
-      });
-      socket.on("disconnect",(roomid)=>{
-         socket.leave(roomid);
-      });
+io.on("connection", (socket) => {
+    socket.on("join-user", (userId) => {
+        socket.join(userId);
+    })
+    socket.on("send-msg", (message, currentRoomid) => {
+        socket.to(currentRoomid).emit("receive-msg", message);
+    });
 })

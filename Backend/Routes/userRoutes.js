@@ -81,7 +81,7 @@ router.post("/login", (req, res) => {
             return res.status(400).json({ success: false, message: "User Not exist" });
         }
         else if(data[0].password != password){
-            return res.status(400).json({ success: false, message: "password does Not exist" });
+            return res.status(400).json({ success: false, message: "Password does not match" });
         }
         else {
             return res.status(200).json({ success: true, data: data[0] });
@@ -91,7 +91,7 @@ router.post("/login", (req, res) => {
 
 
 router.post("/sendMessage", (req, res) => {
-    const { senderUserName, receiverUserName, messageText } = req.body;
+    const { senderUserName, receiverUserName, message_text } = req.body;
 
     if (!senderUserName) {
         return res.status(400).json({
@@ -131,7 +131,7 @@ router.post("/sendMessage", (req, res) => {
                 else {
                     const insertMessage = "INSERT INTO `messages`(`message_text`, `sender_user_name`, `receiver_user_name`) VALUES (?, ?, ?)";
 
-                    db.query(insertMessage, [messageText, senderUserName, receiverUserName], (err, data) => {
+                    db.query(insertMessage, [message_text, senderUserName, receiverUserName], (err, data) => {
                         if (err) {
                             console.error("Error in query", err);
                             return res.status(500).json({ success: false, message: "Database error While inserting message" });
@@ -172,8 +172,8 @@ router.post("/retrieveMessages", (req, res) => {
         })
     }
 
-    const sql = "SELECT `id`, `message_text`, `sender_user_name`, `receiver_user_name`, `time` FROM `messages` WHERE `sender_user_name` = ? AND `receiver_user_name` = ? ORDER BY `time` ASC;"
-    db.query(sql, [senderUserName, receiverUserName], (err, data) => {
+    const sql = "SELECT * FROM `messages` WHERE (`sender_user_name` = ? AND `receiver_user_name` = ?) OR (`sender_user_name` = ? AND `receiver_user_name` = ?);"
+    db.query(sql, [senderUserName, receiverUserName,receiverUserName,senderUserName], (err, data) => {
         if (err) {
             console.log("error while retrieving the data", err);
             return res.status(500).json({
@@ -186,6 +186,27 @@ router.post("/retrieveMessages", (req, res) => {
                 success: true,
                 message: "data fetched successfully",
                 data: data
+            })
+        }
+    })
+})
+
+
+router.post("/allUsers",(req,res)=>{
+
+    const query = "SELECT * FROM `users` WHERE 1";
+    db.query(query,(err,data)=>{
+        if(err){
+            return res.status(400).json({
+                success:false,
+                message:"Error in fetching all users",
+            })
+        }
+        else{
+            return res.status(200).json({
+                success:true,
+                message:"All users fetched successfully",
+                users:data,
             })
         }
     })
