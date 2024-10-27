@@ -735,3 +735,30 @@ h1{
 .chat-container-header:hover .leaveroom {
   transform: scale(1.05); /* Scale the entire button slightly */
 }
+
+.chat-container-body {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+}
+
+.chat-box {
+  max-width: 60%;
+  margin-bottom: 1rem;
+}
+
+.self {
+  align-self: flex-end;
+  background-color: #e1f5fe; /* Your preferred background color for own messages */
+}
+
+.other {
+  align-self: flex-start;
+  background-color: #f1f1f1; /* Your preferred background color for receiver messages */
+}
+
+.chat-content {
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+}
+

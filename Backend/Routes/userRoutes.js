@@ -91,16 +91,16 @@ router.post("/login", (req, res) => {
 
 
 router.post("/sendMessage", (req, res) => {
-    const { senderUserName, receiverUserName, message_text } = req.body;
+    const { sender_user_name, receiver_user_name, message_text } = req.body;
 
-    if (!senderUserName) {
+    if (!sender_user_name) {
         return res.status(400).json({
             success: false,
             message: "Provide senderName",
         })
     }
 
-    if (!receiverUserName) {
+    if (!receiver_user_name) {
         return res.status(400).json({
             success: false,
             message: "Provide receiverUserName",
@@ -108,7 +108,7 @@ router.post("/sendMessage", (req, res) => {
     }
 
     const isSenderPresent = "SELECT * FROM `users` WHERE `userName` = ?";
-    db.query(isSenderPresent, [senderUserName], (err, data) => {
+    db.query(isSenderPresent, [sender_user_name], (err, data) => {
         if (err) {
             console.error("Error in query", err);
             return res.status(500).json({ success: false, message: "Database error while finding sender" });
@@ -119,7 +119,7 @@ router.post("/sendMessage", (req, res) => {
         }
         else {
             const isReceiverPresent = "SELECT * FROM `users` WHERE `userName` = ?";
-            db.query(isReceiverPresent, [receiverUserName], (err, data) => {
+            db.query(isReceiverPresent, [receiver_user_name], (err, data) => {
                 if (err) {
                     console.error("Error in query", err);
                     return res.status(500).json({ success: false, message: "Database error While finding Receiver" });
@@ -131,7 +131,7 @@ router.post("/sendMessage", (req, res) => {
                 else {
                     const insertMessage = "INSERT INTO `messages`(`message_text`, `sender_user_name`, `receiver_user_name`) VALUES (?, ?, ?)";
 
-                    db.query(insertMessage, [message_text, senderUserName, receiverUserName], (err, data) => {
+                    db.query(insertMessage, [message_text, sender_user_name, receiver_user_name], (err, data) => {
                         if (err) {
                             console.error("Error in query", err);
                             return res.status(500).json({ success: false, message: "Database error While inserting message" });
