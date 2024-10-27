@@ -1,4 +1,4 @@
-const Base = "https://chat-app-with-mysql.onrender.com/";
+const Base = "https://chat-app-with-mysql.onrender.com";
 
 
 //User Routes
