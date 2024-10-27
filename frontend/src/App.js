@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { useContext } from "react";
 import { AuthContext } from "./context/AuthContext";
 import Login from "./pages/Login";
-import { Chat } from "./pages/Chat";
+import  Chat  from "./pages/Chat";
 import { Register } from "./pages/Register";
 function App() {
   const { user } = useContext(AuthContext);

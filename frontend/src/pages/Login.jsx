@@ -34,7 +34,7 @@ const Login = () => {
                     navigate("/chat");
                 }
                 else {
-                    throw new Error(response.data.message);
+                    throw new Error(response.data.data.message);
                 }
             }
         } catch (error) {
